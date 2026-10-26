@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.venv/
+models/
+outputs/
+*.o[0-9]*
