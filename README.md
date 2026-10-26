@@ -1,7 +1,7 @@
 # Original Reflexion HotPotQA with local Qwen
 
 `run_original_hotpotqa.py` calls the original `CoTAgent`, `ReactAgent` and
-`ReactReflectAgent` in `Reflexion/hotpotqa_runs/agents.py`. Qwen2.5-7B-Instruct
+`ReactReflectAgent` in `reflexion_hotpotqa/agents.py`. Qwen2.5-7B-Instruct
 replaces the OpenAI backend through a LangChain LLM adapter. LangGraph schedules
 trial rounds; the original classes perform reasoning, actions and reflection.
 
@@ -12,7 +12,7 @@ This replicates the method with Qwen; it does not reproduce the GPT model scores
 
 ## NCI Gadi
 
-Copy the whole checkout, including the modified `Reflexion/` source and `data/`,
+Copy the whole checkout, including the bundled `reflexion_hotpotqa/` package and `data/`,
 to Gadi. The PBS script reuses the downloaded Qwen checkpoint and uses a separate
 ReflectSteer runtime environment. With internet access, create it and install
 the dependencies once (the system site packages expose NCI's PyTorch):
@@ -45,6 +45,13 @@ one V100, 12 CPUs, 64 GB memory and two hours; measure the smoke run and adjust
 walltime for the full experiment. Project `qw14` and storage/environment paths
 come from AgentRL. Override paths using `QWEN_VENV` and `QWEN_MODEL_DIR` via
 `qsub -v` if needed. Compute inference uses local checkpoint files.
+
+The script writes to `/home/572/aa1215/workspace/repos/ReflectSteer/outs/`
+regardless of the submission directory. Override `REFLECTSTEER_REPO` via `qsub -v`
+if your checkout is elsewhere. A per-job `.log` is created there before loading
+modules or activating the environment; setup failures include the failing line.
+PBS also retains its normal `hotpotqa_reflexion.o<job-id>` log. A finished PBS job
+can have failed: check these logs and the exit status before interpreting results.
 
 The original CoT-context notebook supplies **gold supporting paragraphs**,
 including repeated article titles in supporting-fact order. This is the original

@@ -35,7 +35,7 @@ class QwenOriginalLLM(LLM):
 
 def upstream():
     # Import lazily: this module constructs the original p50k_base token counter.
-    from Reflexion.hotpotqa_runs import agents, prompts, fewshots
+    from reflexion_hotpotqa import agents, prompts, fewshots
     return agents, prompts, fewshots
 
 
@@ -126,6 +126,6 @@ def run_trials(agents, mode='cot-context', strategy='reflexion', trials=5, on_re
 
 
 def source_hashes():
-    directory = ROOT / 'Reflexion/hotpotqa_runs'
+    directory = ROOT / 'reflexion_hotpotqa'
     return {name: hashlib.sha256((directory / name).read_bytes()).hexdigest()
             for name in ('agents.py', 'prompts.py', 'fewshots.py')}
