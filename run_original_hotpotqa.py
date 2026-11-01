@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--agent', choices=['cot-context', 'cot-no-context', 'react'], default='cot-context')
+    parser.add_argument('--agent', choices=['cot-context', 'cot-no-context', 'react'], default='react')
     parser.add_argument('--strategy', choices=['base', 'reflexion', 'last_trial', 'last_trial_and_reflexion'], default='reflexion')
     parser.add_argument('--model-dir', type=Path, default=ROOT / 'models/Qwen2.5-7B-Instruct')
     parser.add_argument('--data', type=Path, default=ROOT / 'data/hotpotqa_sample.json')

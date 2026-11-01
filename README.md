@@ -1,7 +1,7 @@
 # Original Reflexion HotPotQA with local Qwen
 
 `run_original_hotpotqa.py` calls the original `CoTAgent`, `ReactAgent` and
-`ReactReflectAgent` in `reflexion_hotpotqa/agents.py`. Qwen2.5-7B-Instruct
+`ReactReflectAgent` in `Reflexion/hotpotqa_runs/agents.py`. Qwen2.5-7B-Instruct
 replaces the OpenAI backend through a LangChain LLM adapter. LangGraph schedules
 trial rounds; the original classes perform reasoning, actions and reflection.
 
@@ -12,7 +12,15 @@ This replicates the method with Qwen; it does not reproduce the GPT model scores
 
 ## NCI Gadi
 
-Copy the whole checkout, including the bundled `reflexion_hotpotqa/` package and `data/`,
+`Reflexion/` is an unmodified Git submodule declared in `.gitmodules`, pinned to
+commit `218cf0ef1df84b05ce379dd4a8e47f17766733a0`. After cloning or updating
+this repository, initialize it:
+
+```bash
+git submodule update --init --recursive
+```
+
+Copy the whole initialized checkout, including `Reflexion/` and `data/`,
 to Gadi. The PBS script reuses the downloaded Qwen checkpoint and uses a separate
 ReflectSteer runtime environment. With internet access, create it and install
 the dependencies once (the system site packages expose NCI's PyTorch):
@@ -33,11 +41,17 @@ Start with one question and one trial:
 qsub -v HOTPOT_LIMIT=1,HOTPOT_TRIALS=1 run_hotpotqa.pbs
 ```
 
-Then run the original **CoT with context** baseline and Reflexion conditions:
+Our experiment compares **ReAct without reflection** (`base`) against
+**ReAct + Reflexion** (`reflexion`). Both use Wikipedia Search/Lookup without
+gold supporting context. Our method will be added later.
+The GPU process must have Wikipedia access. The earlier CoT-context smoke test
+did not exercise retrieval or reflection; verify a small ReAct run first.
+
+Run the two conditions:
 
 ```bash
-qsub -v HOTPOT_STRATEGY=base run_hotpotqa.pbs
-qsub -v HOTPOT_STRATEGY=reflexion run_hotpotqa.pbs
+qsub -v HOTPOT_AGENT=react,HOTPOT_STRATEGY=base run_hotpotqa.pbs
+qsub -v HOTPOT_AGENT=react,HOTPOT_STRATEGY=reflexion run_hotpotqa.pbs
 ```
 
 Both run all 100 sampled questions for five trials by default. The job requests
@@ -66,7 +80,7 @@ qsub -v HOTPOT_AGENT=cot-no-context,HOTPOT_STRATEGY=reflexion run_hotpotqa.pbs
 For direct execution in an allocated GPU session:
 
 ```bash
-python run_original_hotpotqa.py --agent cot-context --strategy reflexion \
+python run_original_hotpotqa.py --agent react --strategy reflexion \
   --model-dir /scratch/qw14/aa1215/qwen/model \
   --limit 1 --trials 1 --output outs/original_smoke.jsonl
 ```
@@ -77,7 +91,7 @@ python run_original_hotpotqa.py --agent cot-context --strategy reflexion \
 six steps per attempt, and the original 3896-token halt rule measured with
 `tiktoken` p50k_base. It never substitutes distractor passages. Run it where the
 GPU process can access Wikipedia, or configure network access before using it on
-NCI. The offline PBS default is CoT-context. A live Wikipedia run also reflects
+NCI. Both the CLI and PBS default to ReAct. A live Wikipedia run also reflects
 changes to Wikipedia since the paper.
 
 ```bash
@@ -96,11 +110,12 @@ python run_original_hotpotqa.py --agent react --strategy reflexion \
   thought, action and reflection calls allow 250 tokens with a newline stop.
 - All four upstream strategies are available: `base`, `reflexion`, `last_trial`,
   `last_trial_and_reflexion`. Correct questions remain frozen on later trials.
-- Imports use modern LangChain core/classic/community namespaces. OpenAI models
-  are no longer instantiated at import time; runners inject Qwen explicitly.
-  Package-relative imports support direct use of the cloned source.
-- One upstream bug is corrected: malformed actions return `(None, None)` instead
-  of crashing during tuple unpacking. Original invalid-action feedback is retained.
+- `reflexion_adapter.py` provides modern LangChain bindings outside the submodule.
+  At load time it removes legacy imports and replaces eager OpenAI defaults in
+  memory so runners can inject Qwen. Upstream files remain unchanged on disk.
+- The external adapter wraps malformed-action parsing to return `(None, None)`
+  instead of crashing during tuple unpacking. Original invalid-action feedback
+  is retained. This compatibility fix is not an edit to the upstream repository.
 - Original prompt and scratchpad handling remain in the upstream agents. The
   Qwen adapter never silently drops history; it fails if a prompt exceeds its
   16384-token input safety limit. Qwen tokens and the original ReAct halt counter
