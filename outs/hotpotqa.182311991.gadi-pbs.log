@@ -1,0 +1,15 @@
+Repo: /home/572/aa1215/workspace/repos/ReflectSteer
+Job: 182311991.gadi-pbs | Submitted from: /home/572/aa1215/workspace/repos/ReflectSteer
+Virtual environment: /scratch/qw14/aa1215/ReflectSteer/venv-nci
+Results: /home/572/aa1215/workspace/repos/ReflectSteer/outs/hotpotqa.182311991.gadi-pbs.jsonl
+Loading pytorch/2.12.0
+  Loading requirement: intel-mkl/2023.2.0 python3/3.11.7 gcc/14.2.0 cuda/12.8.0
+    cudnn/9.5.0-cuda12 nccl/2.27.5 openmpi/5.0.5 magma/2.6.2
+Tesla V100-SXM2-32GB
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:23<01:09, 23.28s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:44<00:44, 22.09s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [01:07<00:22, 22.45s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:27<00:00, 21.69s/it]Loading checkpoint shards: 100%|██████████| 4/4 [01:27<00:00, 21.98s/it]
+The following generation flags are not valid and may be ignored: ['temperature', 'top_p', 'top_k']. Set `TRANSFORMERS_VERBOSITY=info` for more details.
+Thought: The relevant information here is that VIVA Media GmbH is the current name after a change from VIVA Media AG in 2004. The acronym "GmbH" stands for "Gesellschaft mit beschränkter Haftung," which is explained in the context. This form indicates that the owners are not personally liable for the company's debts.
+Action: Finish[Gesellschaft mit beschränkter Haftung]
+{"type": "trial_summary", "trial": 1, "correct": 1, "total": 1, "exact_match": 1.0}
+Completed successfully: /home/572/aa1215/workspace/repos/ReflectSteer/outs/hotpotqa.182311991.gadi-pbs.jsonl
