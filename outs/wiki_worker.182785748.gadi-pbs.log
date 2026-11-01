@@ -1,0 +1,14 @@
+Loading pytorch/2.12.0
+  Loading requirement: intel-mkl/2023.2.0 python3/3.11.7 gcc/14.2.0 cuda/12.8.0
+    cudnn/9.5.0-cuda12 nccl/2.27.5 openmpi/5.0.5 magma/2.6.2
+/home/572/aa1215/workspace/repos/ReflectSteer/wiki_relay.py:87: DeprecationWarning: `langchain-community` is being sunset and is no longer actively maintained. See https://github.com/langchain-ai/langchain-community/issues/674 for details and migration guidance toward standalone integration packages.
+  from langchain_community.docstore.wikipedia import Wikipedia
+Wikipedia worker ready: /scratch/qw14/aa1215/ReflectSteer/wiki-relay-20261101-162909
+{"request": "406b9fbbcec6417ba713624b262c4ec4", "operation": "ping", "query": "", "kind": "pong"}
+{"request": "4c9d83523dd9428f91f80c894ac9f3e9", "operation": "ping", "query": "", "kind": "pong"}
+{"request": "09c3f2868de649038bcb5362b0984c57", "operation": "search", "query": "VIVA Media AG", "kind": "document"}
+{"request": "6b0af703900047479014677382a1c294", "operation": "search", "query": "VIVA Media AG", "kind": "document"}
+{"request": "acb2f8e0004b4471b5faaf47960f5788", "operation": "search", "query": "VIVA Media AG name change 2004", "kind": "text"}
+{"request": "4f44ac0bded2409d9228b8675fc2302b", "operation": "search", "query": "VIVA Media AG name change 2004", "kind": "text"}
+{"request": "d2a11148e7c541b79b4ea83157b53a56", "operation": "search", "query": "VIVA Media AG history", "kind": "error"}
+{"request": "c93cc2a5b7024b9ab7d5eb95a393d0ef", "operation": "search", "query": "VIVA Media AG current status", "kind": "error"}
