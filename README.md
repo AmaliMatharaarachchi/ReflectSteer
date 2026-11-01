@@ -87,6 +87,49 @@ python run_original_hotpotqa.py --agent react --strategy reflexion \
 
 ## Original ReAct requires Wikipedia access
 
+### Shared-storage Wikipedia relay on Gadi
+
+The GPU job can delegate live Wikipedia searches to a separate internet-enabled
+`copyq` worker. This is an experimental deployment: check NCI permits this use of
+`copyq` before running it. Only retrieval runs there; model inference stays on the
+GPU. Both jobs must see the same directory on `/scratch/qw14`.
+
+After updating this checkout and initializing the submodule, submit one worker
+and two smoke jobs from the Gadi login node:
+
+```bash
+cd /home/572/aa1215/workspace/repos/ReflectSteer
+git submodule update --init --recursive
+RELAY=/scratch/qw14/aa1215/ReflectSteer/wiki-relay-$(date +%Y%m%d-%H%M%S)
+mkdir -p "$RELAY"
+qsub -v WIKI_RELAY_DIR="$RELAY" run_wiki_worker.pbs
+```
+
+Wait until `outs/wiki_worker.<job-id>.log` says `Wikipedia worker ready`.
+Then, in the same shell (so `RELAY` is still set):
+
+```bash
+qsub -v WIKI_RELAY_DIR="$RELAY",HOTPOT_AGENT=react,HOTPOT_STRATEGY=base,HOTPOT_LIMIT=2,HOTPOT_TRIALS=2 run_hotpotqa.pbs
+qsub -v WIKI_RELAY_DIR="$RELAY",HOTPOT_AGENT=react,HOTPOT_STRATEGY=reflexion,HOTPOT_LIMIT=2,HOTPOT_TRIALS=2 run_hotpotqa.pbs
+```
+
+The worker serves both jobs and exits after 2.9 hours. Cancel it with `qdel`
+when both GPU jobs finish. If it expires before a GPU job starts, submit a new
+worker with a fresh directory and resubmit the sample. After a forced worker
+termination, use a fresh directory rather than reusing its lock file.
+
+The worker invokes the same LangChain Wikipedia docstore as upstream. Full page
+documents or suggestion strings are returned; the original GPU-side
+`DocstoreExplorer` performs paragraph selection and stateful `Lookup` locally.
+Requests/responses are retained in the relay directory, including timestamps,
+queries, page text and worker errors. Transport failures abort the GPU run rather
+than becoming misleading search observations. No gold paragraphs are supplied.
+The relay ping checks worker availability before loading Qwen; successful Search
+observations are still needed to confirm actual Wikipedia connectivity.
+
+The Qwen wrapper removes a repeated matching `Thought N:` or `Action N:` prefix
+from its completion. Results retain raw `text` and normalized `agent_text`.
+
 `--agent react` uses the original Wikipedia docstore and Search/Lookup behavior,
 six steps per attempt, and the original 3896-token halt rule measured with
 `tiktoken` p50k_base. It never substitutes distractor passages. Run it where the

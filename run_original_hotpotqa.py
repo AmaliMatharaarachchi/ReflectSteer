@@ -22,6 +22,8 @@ def main():
     parser.add_argument('--max-steps', type=int, default=6, help='Original ReAct step budget; unused by CoT')
     parser.add_argument('--max-input-tokens', type=int, default=16384, help='Fail rather than truncate upstream prompts')
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--wiki-relay-dir', type=Path)
+    parser.add_argument('--wiki-timeout', type=float, default=180)
     args = parser.parse_args()
     if min(args.limit, args.trials, args.max_steps, args.max_input_tokens) < 1 or args.offset < 0:
         parser.error('Budgets must be positive; offset must be nonnegative')
@@ -29,6 +31,13 @@ def main():
     # Resolve all agent/framework imports before loading the NCI PyTorch stack.
     from original_hotpotqa import make_agents, run_trials, source_hashes, upstream
     upstream()
+    docstore = None
+    if args.wiki_relay_dir:
+        if args.agent != 'react' or args.wiki_timeout <= 0:
+            parser.error('Relay requires --agent react and a positive --wiki-timeout')
+        from wiki_relay import RelayDocstore
+        docstore = RelayDocstore(args.wiki_relay_dir, args.wiki_timeout)
+        docstore.ping()  # Fail before loading the GPU model if worker is absent.
     from qwen_llm import QwenLM
     rows = json.loads(args.data.read_text(encoding='utf-8'))[args.offset:args.offset + args.limit]
     if not rows:
@@ -44,7 +53,7 @@ def main():
                 print(json.dumps(event), flush=True)
 
         lm = QwenLM(args.model_dir, args.device, args.max_input_tokens, 250)
-        agents = make_agents(rows, lm, args.agent, args.strategy, args.max_steps)
+        agents = make_agents(rows, lm, args.agent, args.strategy, args.max_steps, docstore)
         write({'type': 'metadata', 'implementation': 'upstream_agents',
                'upstream_commit': '218cf0ef1df84b05ce379dd4a8e47f17766733a0',
                'source_sha256': source_hashes(), 'model': lm.metadata,
@@ -53,7 +62,8 @@ def main():
                              'langchain-classic', 'langchain-community', 'tiktoken', 'wikipedia')},
                'data_sha256': hashlib.sha256(args.data.read_bytes()).hexdigest(),
                'question_ids': [row['id'] for row in rows],
-               'retrieval': 'live_wikipedia' if args.agent == 'react' else args.agent,
+               'retrieval': ('shared_storage_live_wikipedia' if docstore else 'live_wikipedia')
+                   if args.agent == 'react' else args.agent,
                'config': {k: str(v) if isinstance(v, Path) else v for k, v in vars(args).items()}})
         run_trials(agents, args.agent, args.strategy, args.trials, write)
 
