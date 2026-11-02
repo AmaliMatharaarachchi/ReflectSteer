@@ -23,7 +23,7 @@ def main():
     parser.add_argument('--max-input-tokens', type=int, default=16384, help='Fail rather than truncate upstream prompts')
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--wiki-relay-dir', type=Path)
-    parser.add_argument('--wiki-timeout', type=float, default=180)
+    parser.add_argument('--wiki-timeout', type=float, default=600)
     args = parser.parse_args()
     if min(args.limit, args.trials, args.max_steps, args.max_input_tokens) < 1 or args.offset < 0:
         parser.error('Budgets must be positive; offset must be nonnegative')

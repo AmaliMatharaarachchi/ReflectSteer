@@ -19,7 +19,7 @@ def publish(path, value):
 
 
 class RelayDocstore:
-    def __init__(self, directory, timeout=180):
+    def __init__(self, directory, timeout=600):
         self.directory = Path(directory)
         self.timeout = timeout
         for name in ('requests', 'responses'):
@@ -84,7 +84,7 @@ def main():
     parser.add_argument('--directory', type=Path, required=True)
     parser.add_argument('--hours', type=float, default=3)
     args = parser.parse_args()
-    from langchain_community.docstore.wikipedia import Wikipedia
+    from wiki_http import ReliableWikipedia
     socket.setdefaulttimeout(30)
     RelayDocstore(args.directory)
     # OS-exclusive lock prevents two workers serving the same directory.
@@ -93,7 +93,14 @@ def main():
     try:
         os.close(descriptor)
         deadline = time.monotonic() + args.hours * 3600
-        store = Wikipedia()
+        def http_log(event):
+            event['time'] = time.time()
+            with (args.directory / 'http.jsonl').open('a', encoding='utf-8') as output:
+                output.write(json.dumps(event, ensure_ascii=False) + '\n')
+            if not event['ok']:
+                print('Wikipedia HTTP: ' + json.dumps(event), flush=True)
+
+        store = ReliableWikipedia(http_log)
         print('Wikipedia worker ready: ' + str(args.directory), flush=True)
         while time.monotonic() < deadline:
             serve_once(args.directory, store)

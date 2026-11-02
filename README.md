@@ -130,6 +130,16 @@ observations are still needed to confirm actual Wikipedia connectivity.
 The Qwen wrapper removes a repeated matching `Thought N:` or `Action N:` prefix
 from its completion. Results retain raw `text` and normalized `agent_text`.
 
+The worker's external `wiki_http.py` layer uses HTTPS, an explicit User-Agent,
+15-second request timeouts, and up to three attempts for network errors, invalid
+JSON, rate limits and temporary server errors. It honors numeric `Retry-After`
+headers within a 90-second budget per search. Permanent HTTP failures abort
+without retry. API parameters and page/suggestion handling stay with the original
+Wikipedia client. `$RELAY/http.jsonl` records HTTP status, URL, content type and a
+short response excerpt on failures. The GPU relay timeout defaults to 600 seconds
+to allow two jobs to share the serial worker. Persistent blocks still require
+diagnosis; retries do not bypass them.
+
 `--agent react` uses the original Wikipedia docstore and Search/Lookup behavior,
 six steps per attempt, and the original 3896-token halt rule measured with
 `tiktoken` p50k_base. It never substitutes distractor passages. Run it where the

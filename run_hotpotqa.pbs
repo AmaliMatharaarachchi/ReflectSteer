@@ -37,7 +37,7 @@ export TIKTOKEN_CACHE_DIR="$PWD/data/tiktoken"
 python -c 'from original_hotpotqa import upstream; upstream(); import torch; from transformers import AutoTokenizer, AutoModelForCausalLM; assert torch.cuda.is_available(), "CUDA unavailable"; print(torch.cuda.get_device_name(0), flush=True)'
 RELAY_ARGS=()
 if [[ -n "${WIKI_RELAY_DIR:-}" ]]; then
-  RELAY_ARGS=(--wiki-relay-dir "$WIKI_RELAY_DIR" --wiki-timeout "${WIKI_TIMEOUT:-180}")
+  RELAY_ARGS=(--wiki-relay-dir "$WIKI_RELAY_DIR" --wiki-timeout "${WIKI_TIMEOUT:-600}")
 fi
 python run_original_hotpotqa.py \
   "${RELAY_ARGS[@]}" \
